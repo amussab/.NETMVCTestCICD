@@ -17,13 +17,19 @@ namespace PatientManagementSystem.Controllers
         }
 
         // GET: Patients
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString)
         {
-            var patients = await _context.Patients
+            var patients = _context.Patients
                 .Include(p => p.InsurancePolicies)
-                .ToListAsync();
+                .AsQueryable();
 
-            return View(patients);
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                patients = patients.Where(p =>
+                    p.medicalNumber!.Contains(searchString));
+            }
+
+            return View(await patients.ToListAsync());
         }
 
         // GET: Patients/Details/1234567890
