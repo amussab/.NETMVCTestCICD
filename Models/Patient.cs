@@ -9,12 +9,13 @@ namespace PatientManagementSystem.Models
     /// <summary>
     /// Patient class represents a patient in the patient management system. It contains properties for the patient's medical number, name, address, and insurance policies. The class provides methods to validate the patient's information and retrieve display text for the patient.
     /// </summary>
+    ///
     public class Patient : IDisposable
     {
         /// <summary>
         /// This is used to store the medical number of the patient. It is a string that can be null.
         /// </summary>
-        public string? medicalNumber { get; set; }
+        public string? medicalNumber { get; set; } = string.Empty; //this shall act as a primary key for the patient, and it is a string that can be null.
         public string? firstName { get; set; }
         public string? lastName { get; set; }
 
@@ -28,6 +29,7 @@ namespace PatientManagementSystem.Models
 
         //insurance policy
         public List<PatientInsurancePolicy> InsurancePolicies { get; set; } = new();
+        public Patient() { }
 
         public Patient(string medicalNumber, string firstName, string lastName, string city, string state, string zipCode, List<PatientInsurancePolicy> insurancePolicy)
         {
