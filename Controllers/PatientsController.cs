@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PatientManagementSystem.Models;
 
@@ -50,6 +53,9 @@ namespace PatientManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Patient patient)
         {
+            patient.medicalNumber = GenerateMedicalNumber();
+            ModelState.Remove(nameof(Patient.medicalNumber));
+
             if (ModelState.IsValid)
             {
                 if (patient.InsurancePolicies == null)
@@ -145,6 +151,19 @@ namespace PatientManagementSystem.Controllers
         private bool PatientExists(string id)
         {
             return _context.Patients.Any(e => e.medicalNumber == id);
+        }
+
+        private string GenerateMedicalNumber()
+        {
+            string medicalNumber;
+
+            do
+            {
+                medicalNumber = Guid.NewGuid().ToString("N")[..10].ToUpperInvariant();
+            }
+            while (_context.Patients.Any(p => p.medicalNumber == medicalNumber));
+
+            return medicalNumber;
         }
     }
 }

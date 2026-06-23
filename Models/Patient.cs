@@ -1,35 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
 
 namespace PatientManagementSystem.Models
 {
     /// <summary>
     /// Patient class represents a patient in the patient management system. It contains properties for the patient's medical number, name, address, and insurance policies. The class provides methods to validate the patient's information and retrieve display text for the patient.
     /// </summary>
-    ///
     public class Patient : IDisposable
     {
         /// <summary>
-        /// This is used to store the medical number of the patient. It is a string that can be null.
+        /// This is used to store the medical number of the patient. It acts as the primary key.
         /// </summary>
-        public string? medicalNumber { get; set; } = string.Empty; //this shall act as a primary key for the patient, and it is a string that can be null.
-        public string? firstName { get; set; }
-        public string? lastName { get; set; }
+        public string medicalNumber { get; set; } = string.Empty;
 
-        //Address
+        public string firstName { get; set; } = string.Empty;
+        public string lastName { get; set; } = string.Empty;
+
+        // Address
         /// <summary>
-        /// City, state, and zip code of the patient. These properties are used to store the address information of the patient. They are all strings that can be null and are retreived as a full address all together using the getAddress() method.
+        /// City, state, and zip code of the patient.
         /// </summary>
-        public string? city { get; set; }
-        public string? state { get; set; }
-        public string? zipCode { get; set; }
+        public string city { get; set; } = string.Empty;
+        public string state { get; set; } = string.Empty;
+        public string zipCode { get; set; } = string.Empty;
 
-        //insurance policy
+        // Insurance policy
         public List<PatientInsurancePolicy> InsurancePolicies { get; set; } = new();
-        public Patient() { }
+
+        public Patient()
+        {
+        }
 
         public Patient(string medicalNumber, string firstName, string lastName, string city, string state, string zipCode, List<PatientInsurancePolicy> insurancePolicy)
         {
@@ -39,7 +40,7 @@ namespace PatientManagementSystem.Models
             this.city = city;
             this.state = state;
             this.zipCode = zipCode;
-            this.InsurancePolicies = insurancePolicy;
+            this.InsurancePolicies = insurancePolicy ?? new List<PatientInsurancePolicy>();
         }
 
         public string getAddress()
@@ -49,25 +50,19 @@ namespace PatientManagementSystem.Models
 
         public virtual bool IsMedicalNumberValid()
         {
-            if (string.IsNullOrEmpty(this.medicalNumber) || this.medicalNumber.Length != 10)
-            {
-                return false;
-            }
-            else { return true; }
+            return !string.IsNullOrEmpty(this.medicalNumber) && this.medicalNumber.Length == 10;
         }
 
         public virtual bool IsNameValid()
         {
-            if (string.IsNullOrEmpty(this.firstName) || string.IsNullOrEmpty(this.lastName))
-            {
-                return false;
-            }
-            else { return true; }
+            return !string.IsNullOrEmpty(this.firstName) && !string.IsNullOrEmpty(this.lastName);
         }
 
         public virtual bool IsAddressValid()
         {
-            return !string.IsNullOrWhiteSpace(city) && !string.IsNullOrWhiteSpace(state) && !string.IsNullOrWhiteSpace(zipCode);
+            return !string.IsNullOrWhiteSpace(city)
+                && !string.IsNullOrWhiteSpace(state)
+                && !string.IsNullOrWhiteSpace(zipCode);
         }
 
         public virtual bool isInsurancePolicyValid()
@@ -78,7 +73,9 @@ namespace PatientManagementSystem.Models
             }
 
             if (this.InsurancePolicies.Any(policy =>
-                policy == null || string.IsNullOrWhiteSpace(policy.providerName) || string.IsNullOrWhiteSpace(policy.policyNumber)))
+                policy == null ||
+                string.IsNullOrWhiteSpace(policy.providerName) ||
+                string.IsNullOrWhiteSpace(policy.policyNumber)))
             {
                 return false;
             }
@@ -91,13 +88,15 @@ namespace PatientManagementSystem.Models
         /// </summary>
         public virtual bool IsValid()
         {
-            return this.isInsurancePolicyValid() && this.IsNameValid() && this.IsAddressValid() && this.IsMedicalNumberValid();
+            return this.isInsurancePolicyValid()
+                && this.IsNameValid()
+                && this.IsAddressValid()
+                && this.IsMedicalNumberValid();
         }
 
         /// <summary>
-        /// This method returns a string representation of the patient's information, including their name and insurance policy details. It constructs a display text by combining the patient's first name, last name, and insurance policy information if available. The method checks if the insurance policies are not null and contain at least one entry before concatenating the insurance provider name and policy number to the display text. The resulting string provides a concise summary of the patient's identity and insurance coverage, which can be used for display purposes in the patient management system.
+        /// This method returns a string representation of the patient's information, including their name and insurance policy details.
         /// </summary>
-        /// <returns></returns>
         public virtual string GetDisplayText1()
         {
             string result = this.firstName + " " + this.lastName;
@@ -111,24 +110,18 @@ namespace PatientManagementSystem.Models
             return result;
         }
 
-        /// <summary>
-        /// This method returns a string representation of the patient's information, including their name and insurance policy details. It constructs a display text by combining the patient's first name, last name, and insurance policy information if available. The method checks if the insurance policies are not null and contain at least one entry before concatenating the insurance provider name and policy number to the display text. The resulting string provides a concise summary of the patient's identity and insurance coverage, which can be used for display purposes in the patient management system.
-        /// </summary>
-        /// <returns></returns>
         public virtual string GetDisplayText2()
         {
             string result = string.Format("{0} {1}", this.firstName, this.lastName);
             if (this.InsurancePolicies != null && InsurancePolicies.Count > 0)
             {
-                result += string.Format(" - {0} {1}", this.InsurancePolicies.First().providerName, this.InsurancePolicies.First().policyNumber);
+                result += string.Format(" - {0} {1}",
+                    this.InsurancePolicies.First().providerName,
+                    this.InsurancePolicies.First().policyNumber);
             }
             return result;
         }
 
-        /// <summary>
-        /// This method returns a string representation of the patient's information, including their name and insurance policy details. It constructs a display text by combining the patient's first name, last name, and insurance policy information if available. The method checks if the insurance policies are not null and contain at least one entry before concatenating the insurance provider name and policy number to the display text. The resulting string provides a concise summary of the patient's identity and insurance coverage, which can be used for display purposes in the patient management system.
-        /// </summary>
-        /// <returns></returns>
         public virtual string GetDisplayText3()
         {
             string result = $"{this.firstName} {this.lastName}";
@@ -141,7 +134,6 @@ namespace PatientManagementSystem.Models
 
         public virtual void Dispose()
         {
-            // Dispose of unmanaged resources here if any, did that using setting the values to null.
             medicalNumber = null;
             firstName = null;
             lastName = null;
@@ -155,7 +147,7 @@ namespace PatientManagementSystem.Models
 
         ~Patient()
         {
-            Dispose(); //apparently destructors are written as a backup only. The IDisposable interface is the preferred way of cleaning up resources.
+            Dispose();
         }
     }
 }
