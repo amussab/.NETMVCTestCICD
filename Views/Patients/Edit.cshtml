@@ -1,0 +1,42 @@
+﻿@model PatientManagementSystem.Models.Patient
+
+<h1>Edit Patient</h1>
+
+<form asp-action="Edit" method="post">
+
+    <input type="hidden" asp-for="medicalNumber" />
+
+    <div class="mb-3">
+        <label asp-for="firstName"></label>
+        <input asp-for="firstName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="lastName"></label>
+        <input asp-for="lastName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="city"></label>
+        <input asp-for="city" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="state"></label>
+        <input asp-for="state" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="zipCode"></label>
+        <input asp-for="zipCode" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Save
+    </button>
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Cancel
+    </a>
+
+</form>

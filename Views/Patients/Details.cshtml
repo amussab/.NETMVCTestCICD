@@ -1,0 +1,31 @@
+﻿@model PatientManagementSystem.Models.Patient
+
+<h1>Patient Details</h1>
+
+<hr />
+
+<dl class="row">
+    <dt class="col-sm-3">Medical Number</dt>
+    <dd class="col-sm-9">@Model.medicalNumber</dd>
+
+    <dt class="col-sm-3">First Name</dt>
+    <dd class="col-sm-9">@Model.firstName</dd>
+
+    <dt class="col-sm-3">Last Name</dt>
+    <dd class="col-sm-9">@Model.lastName</dd>
+
+    <dt class="col-sm-3">City</dt>
+    <dd class="col-sm-9">@Model.city</dd>
+
+    <dt class="col-sm-3">State</dt>
+    <dd class="col-sm-9">@Model.state</dd>
+
+    <dt class="col-sm-3">Zip Code</dt>
+    <dd class="col-sm-9">@Model.zipCode</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.medicalNumber"
+   class="btn btn-warning">Edit</a>
+
+<a asp-action="Index"
+   class="btn btn-secondary">Back</a>
