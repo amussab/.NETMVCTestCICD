@@ -1,18 +1,33 @@
 ﻿@{
     ViewData["Title"] = "Home";
 }
-
+<!---->
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8 text-center">
             <h1 class="display-4 fw-bold mb-3">Patient Management System</h1>
             <p class="lead mb-4">
-                Manage patients, insurance policies, and patient records from one place.
+                Manage patients and insurance policies securely.
             </p>
 
-            <a asp-controller="Patients" asp-action="Index" class="btn btn-primary btn-lg px-4">
-                Manage Patients
-            </a>
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                <a asp-controller="Patients" asp-action="Index" class="btn btn-primary btn-lg px-4 me-2">
+                    Manage Patients
+                </a>
+
+                <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-secondary btn-lg px-4">
+                        Logout
+                    </button>
+                </form>
+            }
+            else
+            {
+                <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary btn-lg px-4">
+                    Login
+                </a>
+            }
         </div>
     </div>
 </div>
