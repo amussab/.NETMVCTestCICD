@@ -1,42 +1,170 @@
-﻿@model PatientManagementSystem.Models.Patient
+﻿@model PatientManagementSystem.Models.PatientFormViewModel
+
+@{
+    ViewData["Title"] = "Edit Patient";
+}
 
 <h1>Edit Patient</h1>
 
 <form asp-action="Edit" method="post">
-
+    @Html.AntiForgeryToken()
     <input type="hidden" asp-for="medicalNumber" />
 
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
     <div class="mb-3">
-        <label asp-for="firstName"></label>
+        <label asp-for="firstName" class="form-label"></label>
         <input asp-for="firstName" class="form-control" />
+        <span asp-validation-for="firstName" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="lastName"></label>
+        <label asp-for="lastName" class="form-label"></label>
         <input asp-for="lastName" class="form-control" />
+        <span asp-validation-for="lastName" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="city"></label>
+        <label asp-for="city" class="form-label"></label>
         <input asp-for="city" class="form-control" />
+        <span asp-validation-for="city" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="state"></label>
+        <label asp-for="state" class="form-label"></label>
         <input asp-for="state" class="form-control" />
+        <span asp-validation-for="state" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="zipCode"></label>
+        <label asp-for="zipCode" class="form-label"></label>
         <input asp-for="zipCode" class="form-control" />
+        <span asp-validation-for="zipCode" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-primary">
-        Save
+    <h4>Insurance Policies</h4>
+    <div asp-validation-for="InsurancePolicies" class="text-danger"></div>
+
+    <div id="policyRows">
+        @for (var i = 0; i < Model.InsurancePolicies.Count; i++)
+        {
+            <div class="border rounded p-3 mb-3 policy-row">
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-policy-btn">
+                        X
+                    </button>
+                </div>
+
+                <input asp-for="InsurancePolicies[i].Id" type="hidden" />
+
+                <div class="mb-3">
+                    <label asp-for="InsurancePolicies[i].providerName" class="form-label"></label>
+                    <input asp-for="InsurancePolicies[i].providerName" class="form-control" />
+                    <span asp-validation-for="InsurancePolicies[i].providerName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="InsurancePolicies[i].policyNumber" class="form-label"></label>
+                    <input asp-for="InsurancePolicies[i].policyNumber" class="form-control" />
+                    <span asp-validation-for="InsurancePolicies[i].policyNumber" class="text-danger"></span>
+                </div>
+            </div>
+        }
+    </div>
+
+    <button type="button" class="btn btn-outline-secondary mb-3" id="addPolicyBtn">
+        Add another policy
     </button>
 
-    <a asp-action="Index" class="btn btn-secondary">
-        Cancel
-    </a>
+    <template id="policyTemplate">
+        <div class="border rounded p-3 mb-3 policy-row">
+            <div class="d-flex justify-content-end mb-2">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-policy-btn">
+                    X
+                </button>
+            </div>
 
+            <input type="hidden" name="InsurancePolicies[__index__].Id" value="" />
+
+            <div class="mb-3">
+                <label class="form-label" for="InsurancePolicies___index___providerName">Provider Name</label>
+                <input name="InsurancePolicies[__index__].providerName"
+                       id="InsurancePolicies___index___providerName"
+                       class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="InsurancePolicies___index___policyNumber">Policy Number</label>
+                <input name="InsurancePolicies[__index__].policyNumber"
+                       id="InsurancePolicies___index___policyNumber"
+                       class="form-control" />
+            </div>
+        </div>
+    </template>
+
+    <br />
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const policyRows = document.getElementById('policyRows');
+        const policyTemplate = document.getElementById('policyTemplate');
+        const addPolicyBtn = document.getElementById('addPolicyBtn');
+
+        function reindexPolicyRows() {
+            const rows = policyRows.querySelectorAll('.policy-row');
+
+            rows.forEach((row, rowIndex) => {
+                row.querySelectorAll('input, label').forEach((el) => {
+                    if (el.name) {
+                        el.name = el.name.replace(/InsurancePolicies\[\d+\]/g, `InsurancePolicies[${rowIndex}]`);
+                    }
+
+                    if (el.id) {
+                        el.id = el.id.replace(/InsurancePolicies_\d+__/g, `InsurancePolicies_${rowIndex}__`);
+                    }
+
+                    if (el.htmlFor) {
+                        el.htmlFor = el.htmlFor.replace(/InsurancePolicies_\d+__/g, `InsurancePolicies_${rowIndex}__`);
+                    }
+                });
+            });
+        }
+
+        function wireRemoveButtons() {
+            document.querySelectorAll('.remove-policy-btn').forEach((btn) => {
+                btn.onclick = function () {
+                    const rows = policyRows.querySelectorAll('.policy-row');
+
+                    if (rows.length <= 1) {
+                        const firstRow = rows[0];
+                        if (firstRow) {
+                            firstRow.querySelectorAll('input[type="text"]').forEach(input => input.value = '');
+                        }
+                        return;
+                    }
+
+                    btn.closest('.policy-row').remove();
+                    reindexPolicyRows();
+                    wireRemoveButtons();
+                };
+            });
+        }
+
+        addPolicyBtn.addEventListener('click', function () {
+            const nextIndex = policyRows.querySelectorAll('.policy-row').length;
+
+            const html = policyTemplate.innerHTML.replaceAll('__index__', nextIndex);
+            policyRows.insertAdjacentHTML('beforeend', html);
+
+            reindexPolicyRows();
+            wireRemoveButtons();
+        });
+
+        wireRemoveButtons();
+    </script>
+}

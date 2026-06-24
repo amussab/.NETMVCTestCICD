@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace PatientManagementSystem.Models
@@ -7,22 +8,35 @@ namespace PatientManagementSystem.Models
     /// <summary>
     /// Patient class represents a patient in the patient management system. It contains properties for the patient's medical number, name, address, and insurance policies. The class provides methods to validate the patient's information and retrieve display text for the patient.
     /// </summary>
+
     public class Patient : IDisposable
     {
         /// <summary>
         /// This is used to store the medical number of the patient. It acts as the primary key.
         /// </summary>
         public string medicalNumber { get; set; } = string.Empty;
+        [Required]
+        [StringLength(50)]
 
         public string firstName { get; set; } = string.Empty;
+        [Required]
+        [StringLength(50)]
         public string lastName { get; set; } = string.Empty;
 
         // Address
         /// <summary>
         /// City, state, and zip code of the patient.
         /// </summary>
+        [Required]
+        [StringLength(100)]
         public string city { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(50)]
         public string state { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(10)]
         public string zipCode { get; set; } = string.Empty;
 
         // Insurance policy

@@ -24,8 +24,40 @@
     <dd class="col-sm-9">@Model.zipCode</dd>
 </dl>
 
-<a asp-action="Edit" asp-route-id="@Model.medicalNumber"
-   class="btn btn-warning">Edit</a>
+<h3>Insurance Policies</h3>
+
+@if (Model.InsurancePolicies != null && Model.InsurancePolicies.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Provider Name</th>
+                <th>Policy Number</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var policy in Model.InsurancePolicies)
+            {
+                <tr>
+                    <td>@policy.providerName</td>
+                    <td>@policy.policyNumber</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No insurance policies found.</p>
+}
+
+<a asp-action="Edit"
+   asp-route-id="@Model.medicalNumber"
+   class="btn btn-warning">
+    Edit
+</a>
 
 <a asp-action="Index"
-   class="btn btn-secondary">Back</a>
+   class="btn btn-secondary">
+    Back
+</a>

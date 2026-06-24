@@ -1,4 +1,5 @@
-﻿@model PatientManagementSystem.Models.Patient
+﻿```cshtml
+@model PatientManagementSystem.Models.PatientFormViewModel
 
 @{
     ViewData["Title"] = "Create Patient";
@@ -8,6 +9,9 @@
 
 <form asp-action="Create" method="post">
     @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
     <div class="mb-3">
         <label asp-for="firstName" class="form-label"></label>
         <input asp-for="firstName" class="form-control" />
@@ -38,6 +42,73 @@
         <span asp-validation-for="zipCode" class="text-danger"></span>
     </div>
 
+    <h4>Insurance Policies</h4>
+
+    <div id="policyRows">
+        @for (var i = 0; i < Model.InsurancePolicies.Count; i++)
+        {
+            <div class="border rounded p-3 mb-3 policy-row">
+                <input asp-for="InsurancePolicies[i].Id" type="hidden" />
+
+                <div class="mb-3">
+                    <label asp-for="InsurancePolicies[i].providerName" class="form-label"></label>
+                    <input asp-for="InsurancePolicies[i].providerName" class="form-control" />
+                    <span asp-validation-for="InsurancePolicies[i].providerName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="InsurancePolicies[i].policyNumber" class="form-label"></label>
+                    <input asp-for="InsurancePolicies[i].policyNumber" class="form-control" />
+                    <span asp-validation-for="InsurancePolicies[i].policyNumber" class="text-danger"></span>
+                </div>
+            </div>
+        }
+    </div>
+
+    <button type="button" class="btn btn-outline-secondary mb-3" id="addPolicyBtn">
+        Add another policy
+    </button>
+
+    <template id="policyTemplate">
+        <div class="border rounded p-3 mb-3 policy-row">
+            <input type="hidden" name="InsurancePolicies[__index__].Id" value="" />
+
+            <div class="mb-3">
+                <label class="form-label">Provider Name</label>
+                <input name="InsurancePolicies[__index__].providerName"
+                       class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Policy Number</label>
+                <input name="InsurancePolicies[__index__].policyNumber"
+                       class="form-control" />
+            </div>
+        </div>
+    </template>
+
     <button type="submit" class="btn btn-primary">Save</button>
     <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        let policyIndex = @Model.InsurancePolicies.Count;
+
+        document.getElementById('addPolicyBtn').addEventListener('click', function () {
+
+            const html = document
+                .getElementById('policyTemplate')
+                .innerHTML
+                .replaceAll('__index__', policyIndex);
+
+            document
+                .getElementById('policyRows')
+                .insertAdjacentHTML('beforeend', html);
+
+            policyIndex++;
+        });
+    </script>
+}
