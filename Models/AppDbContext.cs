@@ -13,6 +13,7 @@ namespace PatientManagementSystem.Models
 
         public DbSet<Patient> Patients { get; set; }
         public DbSet<PatientInsurancePolicy> PatientInsurancePolicies { get; set; }
+        public DbSet<PatientAudit> PatientAudits { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

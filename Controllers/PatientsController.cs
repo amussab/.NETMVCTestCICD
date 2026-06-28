@@ -176,6 +176,53 @@ namespace PatientManagementSystem.Controllers
                 if (existingPatient == null)
                     return NotFound();
 
+                void AddAudit(string field, string? oldValue, string? newValue)
+                {
+                    if (oldValue == newValue)
+                        return;
+
+                    _context.PatientAudits.Add(new PatientAudit
+                    {
+                        PatientMedicalNumber = existingPatient.medicalNumber,
+                        Action = "Edit",
+                        FieldName = field,
+                        OldValue = oldValue,
+                        NewValue = newValue,
+                        ChangedBy = User.Identity?.Name ?? "Unknown",
+                        ChangedAt = DateTime.UtcNow
+                    });
+                }
+
+                AddAudit("First Name", existingPatient.firstName, model.firstName);
+                AddAudit("Last Name", existingPatient.lastName, model.lastName);
+                AddAudit("City", existingPatient.city, model.city);
+                AddAudit("State", existingPatient.state, model.state);
+                AddAudit("Zip Code", existingPatient.zipCode, model.zipCode);
+
+                // Compare insurance policies by index
+                var maxPolicies = Math.Max(existingPatient.InsurancePolicies.Count, model.InsurancePolicies.Count);
+
+                for (int i = 0; i < maxPolicies; i++)
+                {
+                    var oldPolicy = i < existingPatient.InsurancePolicies.Count
+                        ? existingPatient.InsurancePolicies[i]
+                        : null;
+
+                    var newPolicy = i < model.InsurancePolicies.Count
+                        ? model.InsurancePolicies[i]
+                        : null;
+
+                    AddAudit(
+                        $"Insurance Provider #{i + 1}",
+                        oldPolicy?.providerName,
+                        newPolicy?.providerName);
+
+                    AddAudit(
+                        $"Policy Number #{i + 1}",
+                        oldPolicy?.policyNumber,
+                        newPolicy?.policyNumber);
+                }
+
                 existingPatient.firstName = model.firstName;
                 existingPatient.lastName = model.lastName;
                 existingPatient.city = model.city;
@@ -228,12 +275,47 @@ namespace PatientManagementSystem.Controllers
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
             var patient = await _context.Patients
-                .Include(p => p.InsurancePolicies)
-                .FirstOrDefaultAsync(p => p.medicalNumber == id);
+    .Include(p => p.InsurancePolicies)
+    .FirstOrDefaultAsync(p => p.medicalNumber == id);
 
             if (patient != null)
             {
+                void AddDeleteAudit(string field, string? oldValue)
+                {
+                    if (string.IsNullOrEmpty(oldValue))
+                        return;
+
+                    _context.PatientAudits.Add(new PatientAudit
+                    {
+                        PatientMedicalNumber = patient.medicalNumber,
+                        Action = "Delete",
+                        FieldName = field,
+                        OldValue = oldValue,
+                        NewValue = null,
+                        ChangedBy = User.Identity?.Name ?? "Unknown",
+                        ChangedAt = DateTime.UtcNow
+                    });
+                }
+
+                AddDeleteAudit("First Name", patient.firstName);
+                AddDeleteAudit("Last Name", patient.lastName);
+                AddDeleteAudit("City", patient.city);
+                AddDeleteAudit("State", patient.state);
+                AddDeleteAudit("Zip Code", patient.zipCode);
+
+                for (int i = 0; i < patient.InsurancePolicies.Count; i++)
+                {
+                    AddDeleteAudit(
+                        $"Insurance Provider #{i + 1}",
+                        patient.InsurancePolicies[i].providerName);
+
+                    AddDeleteAudit(
+                        $"Policy Number #{i + 1}",
+                        patient.InsurancePolicies[i].policyNumber);
+                }
+
                 _context.Patients.Remove(patient);
+
                 await _context.SaveChangesAsync();
             }
 
