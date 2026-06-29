@@ -22,6 +22,6 @@ namespace PatientManagementSystem.Models
 
         public string ChangedBy { get; set; } = string.Empty;
 
-        public DateTime ChangedAt { get; set; } = DateTime.UtcNow;
+        public DateTime ChangedAt { get; set; } = DateTime.UtcNow; // Store the timestamp in UTC
     }
 }
