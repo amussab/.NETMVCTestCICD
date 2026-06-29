@@ -1,0 +1,2 @@
+2026-06-29 10:54:35.039 +03:00 [INF] Edit | Patient: A218BB7B39 | User: admin@local.test | IP: ::1 | Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36
+2026-06-29 10:55:29.390 +03:00 [INF] Delete | Patient: A218BB7B39 | User: admin@local.test | IP: ::1 | Browser: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36

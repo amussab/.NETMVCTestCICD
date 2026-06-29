@@ -1,19 +1,32 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PatientManagementSystem.Models;
+using Serilog;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+        .Enrich.FromLogContext()
+        .WriteTo.Console()
+        .WriteTo.File(
+            Path.Combine(Directory.GetCurrentDirectory(), "Logs", "log.txt"),
+            rollingInterval: RollingInterval.Infinite,
+            shared: true);
+});
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// Register EF Core DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add Identity + roles
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {
     options.SignIn.RequireConfirmedAccount = false;
@@ -23,7 +36,6 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -31,6 +43,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseRouting();
 
 app.UseAuthentication();
@@ -47,15 +60,21 @@ app.MapRazorPages();
 
 await SeedAdminAsync(app);
 
-app.Run();
+try
+{
+    app.Run();
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 static async Task SeedAdminAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
-    var services = scope.ServiceProvider;
 
-    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
     const string adminRole = "Admin";
     const string adminEmail = "admin@local.test";
@@ -77,8 +96,9 @@ static async Task SeedAdminAsync(WebApplication app)
             EmailConfirmed = true
         };
 
-        var createResult = await userManager.CreateAsync(adminUser, adminPassword);
-        if (createResult.Succeeded)
+        var result = await userManager.CreateAsync(adminUser, adminPassword);
+
+        if (result.Succeeded)
         {
             await userManager.AddToRoleAsync(adminUser, adminRole);
         }

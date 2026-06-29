@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PatientManagementSystem.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 
 namespace PatientManagementSystem.Controllers
 {
@@ -13,10 +14,14 @@ namespace PatientManagementSystem.Controllers
     public class PatientsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<PatientsController> _logger;
 
-        public PatientsController(ApplicationDbContext context)
+        public PatientsController(
+            ApplicationDbContext context,
+            ILogger<PatientsController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: Patients
@@ -100,8 +105,17 @@ namespace PatientManagementSystem.Controllers
                 policy.PatientMedicalNumber = patient.medicalNumber;
             }
 
-            _context.Patients.Add(patient);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Patients.Add(patient);
+                await _context.SaveChangesAsync();
+                LogPatientAction("Create", patient.medicalNumber);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating patient.");
+                throw;
+            }
 
             return RedirectToAction(nameof(Index));
         }
@@ -199,7 +213,6 @@ namespace PatientManagementSystem.Controllers
                 AddAudit("State", existingPatient.state, model.state);
                 AddAudit("Zip Code", existingPatient.zipCode, model.zipCode);
 
-                // Compare insurance policies by index
                 var maxPolicies = Math.Max(existingPatient.InsurancePolicies.Count, model.InsurancePolicies.Count);
 
                 for (int i = 0; i < maxPolicies; i++)
@@ -241,11 +254,26 @@ namespace PatientManagementSystem.Controllers
                     .ToList();
 
                 await _context.SaveChangesAsync();
+                LogPatientAction("Edit", existingPatient.medicalNumber);
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
+                _logger.LogError(
+                    ex,
+                    "Concurrency error editing patient {MedicalNumber}.",
+                    model.medicalNumber);
+
                 if (!PatientExists(model.medicalNumber))
                     return NotFound();
+
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error editing patient {MedicalNumber}.",
+                    model.medicalNumber);
 
                 throw;
             }
@@ -275,8 +303,8 @@ namespace PatientManagementSystem.Controllers
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
             var patient = await _context.Patients
-    .Include(p => p.InsurancePolicies)
-    .FirstOrDefaultAsync(p => p.medicalNumber == id);
+                .Include(p => p.InsurancePolicies)
+                .FirstOrDefaultAsync(p => p.medicalNumber == id);
 
             if (patient != null)
             {
@@ -314,9 +342,17 @@ namespace PatientManagementSystem.Controllers
                         patient.InsurancePolicies[i].policyNumber);
                 }
 
-                _context.Patients.Remove(patient);
-
-                await _context.SaveChangesAsync();
+                try
+                {
+                    _context.Patients.Remove(patient);
+                    await _context.SaveChangesAsync();
+                    LogPatientAction("Delete", patient.medicalNumber);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error deleting patient {MedicalNumber}.", id);
+                    throw;
+                }
             }
 
             return RedirectToAction(nameof(Index));
@@ -325,6 +361,21 @@ namespace PatientManagementSystem.Controllers
         private bool PatientExists(string id)
         {
             return _context.Patients.Any(e => e.medicalNumber == id);
+        }
+
+        private void LogPatientAction(string action, string medicalNumber)
+        {
+            var username = User.Identity?.Name ?? "Unknown";
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+            var browser = Request.Headers.UserAgent.ToString();
+
+            _logger.LogInformation(
+                "{Action} | Patient: {MedicalNumber} | User: {User} | IP: {IP} | Browser: {Browser}",
+                action,
+                medicalNumber,
+                username,
+                ipAddress,
+                browser);
         }
 
         private string GenerateMedicalNumber()
